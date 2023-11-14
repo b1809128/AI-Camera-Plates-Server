@@ -1,0 +1,143 @@
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <link rel="icon" href="https://dichvucong.bocongan.gov.vn/apps/bocongan/resources/image/huy-hieu-cong-an-nhan.png" />
+  <link rel="apple-touch-icon"
+    href="https://dichvucong.bocongan.gov.vn/apps/bocongan/resources/image/huy-hieu-cong-an-nhan.png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="Web site created using create-react-app" />
+  <title>UBND C1</title>
+  <style>
+    .container {
+      width: 100%;
+      height: 90vh;
+
+    }
+
+    .base-row {
+      display: flex;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .base-head {
+      display: flex;
+      width: 100%;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .base-head-image {
+      width: 40px;
+      height: 40px;
+    }
+
+    .title {
+      color: #eb0028;
+    }
+
+    .left
+    {
+      display: flex;
+      box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+      padding: 0 10px;
+    }
+    .right
+    {
+      display: block;
+      box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
+      padding: 0 10px;
+      background: #dee1e6;
+    }
+  
+    .right-container{
+      display: flex;
+    }
+    
+
+    .left-image {
+      width: 1000px;
+      height: 800px;
+      border-radius: 4px;
+    }
+    
+    .right-container-image {
+      width: 60px;
+      height: 60px;
+      border-radius: 4px;
+      padding-right: 10px;
+      padding-top: 10px;
+    }
+
+    .right-container-content {
+      font-weight: 500;
+      border-left: 5px solid #eb0028;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="base-head">
+      <img class="base-head-image"
+        src="https://dichvucong.bocongan.gov.vn/apps/bocongan/resources/image/huy-hieu-cong-an-nhan.png" alt="logo">
+      <h1 class="title">HỆ THỐNG NHẬN DẠNG BIỂN SỐ XE UBND</h1>
+
+    </div>
+    <div class="base-row">
+      <div class="left">
+        <img class="left-image" src="{{ url_for('video_feed') }}">
+      </div>
+      <div class="right">
+        <div class="right-container">
+          <img class="right-container-image" src="https://dichvucong.bocongan.gov.vn/apps/bocongan/resources/image/huy-hieu-cong-an-nhan.png">
+          <div class="right-container-content">
+            <p style="background:rgba(149, 157, 165, 0.7)">Tình trạng: Xe cơ quan UBND</p>
+            <p>Sự kiện: Xe vào cổng</p>
+            <p>Loại xe: Ô tô con</p>
+            <p>Biển số: 65A-00343</p>
+            <p>Thời điểm: 07:19:22 14/11/2023</p>
+          </div>
+        </div>
+        <hr>
+        <div class="right-container">
+          <img class="right-container-image" src="https://dichvucong.bocongan.gov.vn/apps/bocongan/resources/image/huy-hieu-cong-an-nhan.png">
+          <div class="right-container-content">
+            <p style="background:rgba(149, 157, 165, 0.2)">Tình trạng: Xe cơ quan UBND</p>
+            <p>Sự kiện: Xe vào cổng</p>
+            <p>Loại xe: Ô tô con</p>
+            <p>Biển số: 65A-00343</p>
+            <p>Thời điểm: 07:19:22 14/11/2023</p>
+          </div>
+        </div>
+        <hr>
+        <div class="right-container">
+          <img class="right-container-image" src="https://dichvucong.bocongan.gov.vn/apps/bocongan/resources/image/huy-hieu-cong-an-nhan.png">
+          <div class="right-container-content">
+            <p style="background:rgba(149, 157, 165, 0.2)">Tình trạng: Xe cơ quan UBND</p>
+            <p>Sự kiện: Xe vào cổng</p>
+            <p>Loại xe: Ô tô con</p>
+            <p>Biển số: 65A-00343</p>
+            <p>Thời điểm: 07:19:22 14/11/2023</p>
+          </div>
+        </div>
+        <hr>
+        <div class="right-container">
+          <img class="right-container-image" src="https://dichvucong.bocongan.gov.vn/apps/bocongan/resources/image/huy-hieu-cong-an-nhan.png">
+          <div class="right-container-content">
+            <p style="background:rgba(149, 157, 165, 0.2)">Tình trạng: Xe cơ quan UBND</p>
+            <p>Sự kiện: Xe vào cổng</p>
+            <p>Loại xe: Ô tô con</p>
+            <p>Biển số: 65A-00343</p>
+            <p>Thời điểm: 07:19:22 14/11/2023</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>
