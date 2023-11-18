@@ -1,29 +1,28 @@
-from flask import Flask, render_template, Response
+from flask import Flask, render_template, Response, jsonify, request
 from datetime import datetime
-from PIL import Image
+# from PIL import Image
 import cv2
 import torch
-import math
+# import math
 import function.utils_rotate as utils_rotate
 from IPython.display import display
-import os
-import time
-import argparse
+# import os
+# import time
+# import argparse
 import function.helper as helper
-import pandas as pd
-import csv
+# import pandas as pd
+# import csv
+import pymysql
+
+# db = pymysql.connect("localhost", "root", "", "camera_ai","3306")
+
 
 app = Flask(__name__)
 
-
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-
 now = datetime.now()
 dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
-# dateStr = today.strftime("%d/%m/%Y")
+
+plate_array = []
 
 # load model
 yolo_LP_detect = torch.hub.load(
@@ -31,9 +30,6 @@ yolo_LP_detect = torch.hub.load(
 yolo_license_plate = torch.hub.load(
     'yolov5', 'custom', path='model/LP_ocr_nano_62.pt', force_reload=True, source='local')
 yolo_license_plate.conf = 0.60
-
-prev_frame_time = 0
-new_frame_time = 0
 
 
 def check_plate(plate):
@@ -46,7 +42,8 @@ def check_plate(plate):
 
 
 def gen():
-    cap = cv2.VideoCapture("D:/QuocHuy/Project/AI/Flask-Server-AI-Camera/test_image/test.mp4")
+    # cap = cv2.VideoCapture("D:/QuocHuy/Project/AI/Flask-Server-AI-Camera/test_image/test.mp4")
+    cap = cv2.VideoCapture(0)
 
     while True:
         ret, frame = cap.read()
@@ -99,10 +96,16 @@ def gen():
         if not ret:
             print("Error: failed to capture image")
             break
-
+        global plate_array
+        plate_array += list_read_plates
         cv2.imwrite('demo.jpg', frame)
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + open('demo.jpg', 'rb').read() + b'\r\n')
+
+
+@app.route('/')
+def index():
+    return render_template('index.html', dt_string=dt_string)
 
 
 @app.route('/video_feed')
@@ -111,5 +114,71 @@ def video_feed():
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
+@app.route('/returnjson', methods=['GET'])
+def ReturnJSON():
+    if (request.method == 'GET'):
+        data = {
+            "Modules": 15,
+            "Subject": "Data Structures and Algorithms",
+        }
+
+        return jsonify(data)
+
+
+@app.route('/countRowData', methods=['GET'])
+def countRowData():
+    count = 0
+    if (request.method == 'GET'):
+        data = [{
+            "id": 1,
+            "plate": "65A19777",
+        }, {
+            "id": 2,
+            "plate": "65A-19777",
+        },{
+            "id": 3,
+            "plate": "65A19777",
+        },{
+            "id": 4,
+            "plate": "65A19777",
+        }]
+
+        for i in data:
+            # print(i['id'])
+            if (i['plate'] == "65A-19777"):
+                count += 1
+        return jsonify({"count": count})
+
+
+@app.route('/loadData', methods=['GET', 'POST'])
+def loadData():
+    data = [{
+        "id": 1,
+        "plate": "65A19777",
+        "created_at": "08:35:20 18/11/2023"
+    }, {
+        "id": 2,
+        "plate": "65A25896",
+        "created_at": "08:38:20 18/11/2023"
+    }, {
+        "id": 3,
+        "plate": "65A19777",
+        "created_at": "08:38:20 18/11/2023"
+    }]
+
+    newData = []
+
+    for i in data:
+        if (i["plate"] == "65A19777"):
+            # print(i)
+            return jsonify(response=i)
+            newData += i
+
+
 if __name__ == '__main__':
     app.run(debug=True)
+    # print(plate_array)
+    # socketio.run(app)
+
+# Requirements.txt
+# pipreqs --encoding=utf8 D:\QuocHuy\Project\AI\Flask-Server-AI-Camera

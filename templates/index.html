@@ -9,6 +9,7 @@
   <meta name="theme-color" content="#000000" />
   <meta name="description" content="Web site created using create-react-app" />
   <title>UBND C1</title>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
   <style>
     .container {
       width: 100%;
@@ -38,31 +39,33 @@
       color: #eb0028;
     }
 
-    .left
-    {
+    .left {
       display: flex;
       box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
       padding: 0 10px;
     }
-    .right
-    {
+
+    .right {
       display: block;
       box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
       padding: 0 10px;
+    }
+
+    .right-container {
       background: #dee1e6;
-    }
-  
-    .right-container{
+      box-shadow: rgba(149, 157, 165, 0.5) 0px 4px 4px;
       display: flex;
+      border-radius: 4px;
+      margin-bottom: 10px;
     }
-    
+
 
     .left-image {
       width: 1000px;
       height: 800px;
       border-radius: 4px;
     }
-    
+
     .right-container-image {
       width: 60px;
       height: 60px;
@@ -74,8 +77,22 @@
     .right-container-content {
       font-weight: 500;
       border-left: 5px solid #eb0028;
+      padding-left: 4px;
+
     }
   </style>
+
+  <script type="text/javascript" charset="utf-8">
+    let callAPI = () => {
+      const room_url = "http://127.0.0.1:5000/returnjson"
+      fetch(room_url)
+        .then(response => response.json())
+        .then(data => {
+          // data is a parsed JSON object
+          console.log(data);
+        })
+    }
+  </script>
 </head>
 
 <body>
@@ -83,61 +100,97 @@
     <div class="base-head">
       <img class="base-head-image"
         src="https://dichvucong.bocongan.gov.vn/apps/bocongan/resources/image/huy-hieu-cong-an-nhan.png" alt="logo">
-      <h1 class="title">HỆ THỐNG NHẬN DẠNG BIỂN SỐ XE UBND</h1>
+      <h1 class="title">HỆ THỐNG KIỂM SOÁT BIỂN SỐ XE RA VÀO UBND TP. CẦN THƠ</h1>
 
     </div>
     <div class="base-row">
       <div class="left">
         <img class="left-image" src="{{ url_for('video_feed') }}">
       </div>
-      <div class="right">
-        <div class="right-container">
-          <img class="right-container-image" src="https://dichvucong.bocongan.gov.vn/apps/bocongan/resources/image/huy-hieu-cong-an-nhan.png">
+      <div id="test" class="right">
+        <!-- {%for item in range(0,2)%} -->
+        <!-- <div class="right-container">
+          <img class="right-container-image"
+            src="https://dichvucong.bocongan.gov.vn/apps/bocongan/resources/image/huy-hieu-cong-an-nhan.png">
           <div class="right-container-content">
             <p style="background:rgba(149, 157, 165, 0.7)">Tình trạng: Xe cơ quan UBND</p>
             <p>Sự kiện: Xe vào cổng</p>
             <p>Loại xe: Ô tô con</p>
             <p>Biển số: 65A-00343</p>
-            <p>Thời điểm: 07:19:22 14/11/2023</p>
+            <p>Thời điểm: {{dt_string}}</p>
           </div>
-        </div>
-        <hr>
-        <div class="right-container">
-          <img class="right-container-image" src="https://dichvucong.bocongan.gov.vn/apps/bocongan/resources/image/huy-hieu-cong-an-nhan.png">
-          <div class="right-container-content">
-            <p style="background:rgba(149, 157, 165, 0.2)">Tình trạng: Xe cơ quan UBND</p>
-            <p>Sự kiện: Xe vào cổng</p>
-            <p>Loại xe: Ô tô con</p>
-            <p>Biển số: 65A-00343</p>
-            <p>Thời điểm: 07:19:22 14/11/2023</p>
-          </div>
-        </div>
-        <hr>
-        <div class="right-container">
-          <img class="right-container-image" src="https://dichvucong.bocongan.gov.vn/apps/bocongan/resources/image/huy-hieu-cong-an-nhan.png">
-          <div class="right-container-content">
-            <p style="background:rgba(149, 157, 165, 0.2)">Tình trạng: Xe cơ quan UBND</p>
-            <p>Sự kiện: Xe vào cổng</p>
-            <p>Loại xe: Ô tô con</p>
-            <p>Biển số: 65A-00343</p>
-            <p>Thời điểm: 07:19:22 14/11/2023</p>
-          </div>
-        </div>
-        <hr>
-        <div class="right-container">
-          <img class="right-container-image" src="https://dichvucong.bocongan.gov.vn/apps/bocongan/resources/image/huy-hieu-cong-an-nhan.png">
-          <div class="right-container-content">
-            <p style="background:rgba(149, 157, 165, 0.2)">Tình trạng: Xe cơ quan UBND</p>
-            <p>Sự kiện: Xe vào cổng</p>
-            <p>Loại xe: Ô tô con</p>
-            <p>Biển số: 65A-00343</p>
-            <p>Thời điểm: 07:19:22 14/11/2023</p>
-          </div>
-        </div>
+        </div> -->
+        <!-- {%endfor%} -->
 
       </div>
     </div>
   </div>
+  <script type="text/javascript">
+    $(document).ready(function () {
+      let lastcnt = 0;
+      let cnt;
+      chkNewScan();
+
+      function chkNewScan() {
+        countRowData();
+        setTimeout(chkNewScan, 5000);
+      }
+
+      function countRowData() {
+        $.ajax({
+          url: '/countRowData',
+          type: 'GET',
+          dataType: 'json',
+          success: function (data) {
+            // console.log(data);
+            cnt = data.count;
+            if (cnt > lastcnt) {
+              reloadData();
+            }
+
+            lastcnt = cnt;
+          },
+          error: function (result) {
+            console.log('no result!')
+          }
+        })
+      }
+
+      function reloadData() {
+        $.ajax({
+          url: '/loadData',
+          type: 'GET',
+          dataType: 'json',
+          success: function (response) {
+            var divRightContainer = $("#test");
+            divRightContainer.empty();
+
+            $.each(response, function (index, item) {
+              // console.log(item.id);
+              if (item.id > 0) {
+                for (let i = 0; i < item.id; i++) {
+                  divRightContainer.append('<div class="right-container">' +
+                    '<img class="right-container-image"' + 'src="https://dichvucong.bocongan.gov.vn/apps/bocongan/resources/image/huy-hieu-cong-an-nhan.png">' +
+                    '<div class="right-container-content">' +
+                    '<p style="background:rgba(149, 157, 165, 0.7)">Tình trạng: Xe cơ quan UBND</p>' +
+                    '<p>Sự kiện: Xe vào cổng</p>' +
+                    '<p>Loại xe: Ô tô con</p>' +
+                    '<p>Biển số: 65A-00343</p>' +
+                    '<p>Thời điểm: {{dt_string}}</p>' +
+                    '<p>Thời điểm:'+i+'</p>'+
+                    '</div>' +
+                    '</div>');
+                }
+              }
+            });
+          },
+          error: function (result) {
+            console.log('no result!')
+          }
+        });
+      }
+    });
+  </script>
 </body>
 
 </html>
