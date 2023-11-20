@@ -13,7 +13,6 @@ import function.helper as helper
 # import pandas as pd
 # import csv
 from flask_mysqldb import MySQL, MySQLdb
-import MySQLdb.cursors
 # db = pymysql.connect("localhost", "root", "", "camera_ai","3306")
 
 
@@ -26,7 +25,6 @@ app.config['MYSQL_DB'] = 'camera_ai'
 
 mysql = MySQL(app)
 app.app_context().push()
-connt = mysql.connection
 cursor = mysql.connection.cursor()
 # with app.app_context():
 #     cursor = mysql.connection.cursor()
@@ -56,7 +54,6 @@ def check_plate(plate):
 
 def gen():
     # cap = cv2.VideoCapture("D:/QuocHuy/Project/AI/Flask-Server-AI-Camera/test_image/test.mp4")
-    # cursor = mysql.connection.cursor()
     cap = cv2.VideoCapture(0)
     while True:
         ret, frame = cap.read()
@@ -83,17 +80,16 @@ def gen():
                         yolo_license_plate, utils_rotate.deskew(crop_img, cc, ct))
                     if lp != "unknown":
                         list_read_plates.add(lp)
-                        # cursor.execute(
-                        #     "SELECT * FROM detect_today where plate='"+lp+"'")
-                        # checkDetectToday = cursor.fetchall()
-                        # if (len(checkDetectToday) > 0):
-                        #     count = 1
-                        # print(jsonify(checkDetectToday))
-                        # if(len(checkDetectToday) == 0):
-                        #     cursor.execute(
-                        #         "INSERT INTO detect_today VALUES('','Khong co du lieu','Xe vao co quan','O to','65A-31348','')")
-                        # mysql.connection.commit()
-                        returnCarChecked(lp)
+                        cursor.execute(
+                            "SELECT * FROM detect_today where plate='"+lp+"'")
+                        checkDetectToday = cursor.fetchall()
+                        if (len(checkDetectToday) > 0):
+                            count = 1
+                        else:
+                            cursor.execute(
+                                "INSERT INTO detect_today VALUES('','Khong co du lieu','Xe vao co quan','O to','65A-31348','')")
+                            mysql.connection.commit()
+
                         (text_width, text_height) = cv2.getTextSize(
                             lp, cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5, thickness=1)[0]
                         text_offset_x = int(plate[0])
@@ -119,23 +115,6 @@ def gen():
         cv2.imwrite('demo.jpg', frame)
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + open('demo.jpg', 'rb').read() + b'\r\n')
-
-
-def returnCarChecked(lp):
-    # lp = "65A19777"
-    cursor.execute("SELECT * FROM detect_today where plate='"+lp+"'")
-    checkDetectToday = cursor.fetchall()
-    if (len(checkDetectToday) == 0):
-        returnCarInsert(lp)
-
-
-def returnCarInsert(lp):
-    # lp = "65A19777"
-
-    cursor.execute(
-        "INSERT INTO `detect_today` (`id`, `status`, `event`, `type`, `plate`, `date`) VALUES (NULL, 'Khong co du lieu ', 'Xe vao co quan', 'O to', 'abc', current_timestamp())")
-    connt.commit()
-    print("Inserted data" + lp)
 
 
 @app.route('/')

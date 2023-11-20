@@ -133,7 +133,7 @@
 
       function chkNewScan() {
         countRowData();
-        setTimeout(chkNewScan, 5000);
+        setTimeout(chkNewScan, 3000);
       }
 
       function countRowData() {
@@ -145,7 +145,7 @@
             // console.log(data);
             cnt = data.count;
             if (cnt > lastcnt) {
-              reloadData();
+              loadData();
             }
 
             lastcnt = cnt;
@@ -156,7 +156,7 @@
         })
       }
 
-      function reloadData() {
+      function loadData() {
         $.ajax({
           url: '/loadData',
           type: 'GET',
@@ -166,18 +166,17 @@
             divRightContainer.empty();
 
             $.each(response, function (index, item) {
-              // console.log(item.id);
-              if (item.id > 0) {
-                for (let i = 0; i < item.id; i++) {
+              // console.log(item);
+              if (item.length > 0) {
+                for (let i = 0; i < item.length; i++) {
                   divRightContainer.append('<div class="right-container">' +
                     '<img class="right-container-image"' + 'src="https://dichvucong.bocongan.gov.vn/apps/bocongan/resources/image/huy-hieu-cong-an-nhan.png">' +
                     '<div class="right-container-content">' +
-                    '<p style="background:rgba(149, 157, 165, 0.7)">Tình trạng: Xe cơ quan UBND</p>' +
-                    '<p>Sự kiện: Xe vào cổng</p>' +
-                    '<p>Loại xe: Ô tô con</p>' +
-                    '<p>Biển số: 65A-00343</p>' +
+                    '<p style="background:rgba(149, 157, 165, 0.7)">Tình trạng: '+item[i].status+'</p>' +
+                    '<p>Sự kiện: '+item[i].event+'</p>' +
+                    '<p>Loại xe: '+item[i].type+'</p>' +
+                    '<p>Biển số: '+item[i].plate+'</p>' +
                     '<p>Thời điểm: {{dt_string}}</p>' +
-                    '<p>Thời điểm:'+i+'</p>'+
                     '</div>' +
                     '</div>');
                 }
