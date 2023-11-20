@@ -83,39 +83,32 @@ def gen():
                         yolo_license_plate, utils_rotate.deskew(crop_img, cc, ct))
                     if lp != "unknown":
                         list_read_plates.add(lp)
-                        # cursor.execute(
-                        #     "SELECT * FROM detect_today where plate='"+lp+"'")
-                        # checkDetectToday = cursor.fetchall()
-                        # if (len(checkDetectToday) > 0):
-                        #     count = 1
-                        # print(jsonify(checkDetectToday))
-                        # if(len(checkDetectToday) == 0):
-                        #     cursor.execute(
-                        #         "INSERT INTO detect_today VALUES('','Khong co du lieu','Xe vao co quan','O to','65A-31348','')")
-                        # mysql.connection.commit()
                         returnCarChecked(lp)
+                        # objectCheck = returnObjectCheck(lp)
+                        # print(objectCheck)
                         (text_width, text_height) = cv2.getTextSize(
                             lp, cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5, thickness=1)[0]
                         text_offset_x = int(plate[0])
                         text_offset_y = int(plate[1]-10)
                         # make the coords of the box with a small padding of two pixels
                         box_coords = ((text_offset_x, text_offset_y), (text_offset_x +
-                                                                       text_width + 60, text_offset_y-40 - text_height - 2))
+                                                                       text_width + 70, text_offset_y-50 - text_height - 2))
+
                         cv2.rectangle(
                             frame, box_coords[0], box_coords[1], (0, 0, 0), cv2.FILLED)
+                        cv2.putText(frame, "Tinh trang: "+returnStatusCheck(lp), (int(plate[0]), int(
+                            plate[1]-55)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
+                        cv2.putText(frame, "Su kien: Xe vao co quan", (int(plate[0]), int(
+                            plate[1]-45)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
                         cv2.putText(frame, "Loai xe: O to", (int(plate[0]), int(
-                            plate[1]-40)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
-                        cv2.putText(frame, "Kiem tra: Khong co du lieu", (int(plate[0]), int(
-                            plate[1]-30)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
-                        cv2.putText(frame, "Thoi diem: "+dt_string, (int(plate[0]), int(
-                            plate[1]-20)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
+                            plate[1]-35)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
                         cv2.putText(frame, "Bien so: "+lp, (int(plate[0]), int(
-                            plate[1]-10)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
+                            plate[1]-25)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
+                        cv2.putText(frame, "Thoi diem: "+dt_string, (int(plate[0]), int(
+                            plate[1]-15)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
         if not ret:
             print("Error: failed to capture image")
             break
-        global plate_array
-        plate_array += list_read_plates
         cv2.imwrite('demo.jpg', frame)
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + open('demo.jpg', 'rb').read() + b'\r\n')
@@ -125,17 +118,43 @@ def returnCarChecked(lp):
     # lp = "65A19777"
     cursor.execute("SELECT * FROM detect_today where plate='"+lp+"'")
     checkDetectToday = cursor.fetchall()
+
     if (len(checkDetectToday) == 0):
-        returnCarInsert(lp)
+        cursor.execute("SELECT * FROM detected where plate='"+lp+"'")
+        checkDetected = cursor.fetchall()
+        if ((len(checkDetected) == 0)):
+            returnCarNoneDetectInsert(lp)
+        else:
+            returnCarDetectedInsert(checkDetected[0][1], lp)
 
 
-def returnCarInsert(lp):
-    # lp = "65A19777"
+def returnStatusCheck(lp):
+    cursor.execute("SELECT * FROM detected where plate='"+lp+"'")
+    checkDetected = cursor.fetchall()
+    if (len(checkDetected) == 0):
+        cursor.execute("SELECT * FROM detect_today where plate='"+lp+"'")
+        checkDetectToday = cursor.fetchall()
+        if (len(checkDetectToday) > 0):
+            return "Xe da vao"
+        if (len(checkDetectToday) == 0):
+            return "Khong co du lieu"
+    else:
 
+        return checkDetected[0][1]
+
+
+def returnCarNoneDetectInsert(lp):
     cursor.execute(
-        "INSERT INTO `detect_today` (`id`, `status`, `event`, `type`, `plate`, `date`) VALUES (NULL, 'Khong co du lieu ', 'Xe vao co quan', 'O to', 'abc', current_timestamp())")
+        "INSERT INTO `detect_today` (`id`, `status`, `event`, `type`, `plate`, `date`) VALUES (NULL, 'Khong co du lieu', 'Xe vao co quan', 'O to', '"+lp+"', current_timestamp())")
     connt.commit()
-    print("Inserted data" + lp)
+    # print("Inserted data" + lp)
+
+
+def returnCarDetectedInsert(status, lp):
+    cursor.execute(
+        "INSERT INTO `detect_today` (`id`, `status`, `event`, `type`, `plate`, `date`) VALUES (NULL, '"+status+"', 'Xe vao co quan', 'O to', '"+lp+"', current_timestamp())")
+    connt.commit()
+    # print("Inserted data" + lp)
 
 
 @app.route('/')
@@ -165,7 +184,7 @@ def ReturnJSON():
             "id": int(result["accs_id"]), "plate": result["accs_date"]}
         arrayInfo.append(arrayObjects)
         arrayObjects = {}
-
+    # print(returnObjectCheck('65A26616'))
     return jsonify(arrayInfo)
 
 
