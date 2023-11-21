@@ -43,12 +43,14 @@
       display: flex;
       box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
       padding: 0 10px;
+      max-width: 1000px;
     }
 
     .right {
       display: block;
       box-shadow: rgba(149, 157, 165, 0.2) 0px 8px 24px;
       padding: 0 10px;
+      min-width: 300px;
     }
 
     .right-container {
@@ -61,8 +63,8 @@
 
 
     .left-image {
-      width: 1000px;
-      height: 800px;
+      width: 900px;
+      height: 620px;
       border-radius: 4px;
     }
 
@@ -78,7 +80,6 @@
       font-weight: 500;
       border-left: 5px solid #eb0028;
       padding-left: 4px;
-
     }
   </style>
 
@@ -129,6 +130,7 @@
     $(document).ready(function () {
       let lastcnt = 0;
       let cnt;
+      // $(".right-container").empty()
       chkNewScan();
 
       function chkNewScan() {
@@ -144,6 +146,7 @@
           success: function (data) {
             // console.log(data);
             cnt = data.count;
+            
             if (cnt > lastcnt) {
               loadData();
             }
@@ -165,17 +168,18 @@
             var divRightContainer = $("#test");
             divRightContainer.empty();
 
-            $.each(response, function (index, item) {
+            $.each(response, async function (index, item) {
               // console.log(item);
               if (item.length > 0) {
                 for (let i = 0; i < item.length; i++) {
+                  await sleepAppend(1000)
                   divRightContainer.append('<div class="right-container">' +
                     '<img class="right-container-image"' + 'src="https://dichvucong.bocongan.gov.vn/apps/bocongan/resources/image/huy-hieu-cong-an-nhan.png">' +
                     '<div class="right-container-content">' +
-                    '<p style="background:rgba(149, 157, 165, 0.7)">Tình trạng: '+item[i].status+'</p>' +
-                    '<p>Sự kiện: '+item[i].event+'</p>' +
-                    '<p>Loại xe: '+item[i].type+'</p>' +
-                    '<p>Biển số: '+item[i].plate+'</p>' +
+                    '<p style="background:rgba(149, 157, 165, 0.7)">Kiểm tra: ' + item[i].status + '</p>' +
+                    '<p>Sự kiện: ' + item[i].event + '</p>' +
+                    '<p>Loại xe: ' + item[i].type + '</p>' +
+                    '<p>Biển số: ' + item[i].plate + '</p>' +
                     '<p>Thời điểm: {{dt_string}}</p>' +
                     '</div>' +
                     '</div>');
@@ -188,6 +192,10 @@
           }
         });
       }
+      function sleepAppend(ms) {
+        return new Promise((resolve) => setTimeout(resolve, ms));
+      };
+
     });
   </script>
 </body>

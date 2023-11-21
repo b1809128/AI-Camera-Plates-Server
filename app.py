@@ -83,7 +83,7 @@ def gen():
                         yolo_license_plate, utils_rotate.deskew(crop_img, cc, ct))
                     if lp != "unknown":
                         list_read_plates.add(lp)
-                        returnCarChecked(lp)
+                        returnCarCheckedForAdd(lp)
                         # objectCheck = returnObjectCheck(lp)
                         # print(objectCheck)
                         (text_width, text_height) = cv2.getTextSize(
@@ -96,9 +96,9 @@ def gen():
 
                         cv2.rectangle(
                             frame, box_coords[0], box_coords[1], (0, 0, 0), cv2.FILLED)
-                        cv2.putText(frame, "Tinh trang: "+returnStatusCheck(lp), (int(plate[0]), int(
+                        cv2.putText(frame, "Tinh trang: "+returnVideoStatusCheck(lp), (int(plate[0]), int(
                             plate[1]-55)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
-                        cv2.putText(frame, "Su kien: Xe vao co quan", (int(plate[0]), int(
+                        cv2.putText(frame, "Su kien: XE VAO UBND", (int(plate[0]), int(
                             plate[1]-45)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
                         cv2.putText(frame, "Loai xe: O to", (int(plate[0]), int(
                             plate[1]-35)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
@@ -114,45 +114,52 @@ def gen():
                b'Content-Type: image/jpeg\r\n\r\n' + open('demo.jpg', 'rb').read() + b'\r\n')
 
 
-def returnCarChecked(lp):
+def returnCarCheckedForAdd(lp):
     # lp = "65A19777"
-    cursor.execute("SELECT * FROM detect_today where plate='"+lp+"'")
-    checkDetectToday = cursor.fetchall()
-
-    if (len(checkDetectToday) == 0):
-        cursor.execute("SELECT * FROM detected where plate='"+lp+"'")
-        checkDetected = cursor.fetchall()
-        if ((len(checkDetected) == 0)):
-            returnCarNoneDetectInsert(lp)
-        else:
-            returnCarDetectedInsert(checkDetected[0][1], lp)
-
-
-def returnStatusCheck(lp):
     cursor.execute("SELECT * FROM detected where plate='"+lp+"'")
     checkDetected = cursor.fetchall()
-    if (len(checkDetected) == 0):
+
+    if (len(checkDetected) > 0):
+        returnCarDetectedInsert(checkDetected[0][1], lp)
+    else:
+        cursor.execute("SELECT * FROM detect_today where plate='"+lp+"'")
+        checkDetected = cursor.fetchall()
+
+        if ((len(checkDetected) < 0)):
+            returnCarNoneDetectInsert(lp, 0)
+        else:
+            returnCarNoneDetectInsert(lp, 1)
+
+
+def returnVideoStatusCheck(lp):
+    cursor.execute("SELECT * FROM detected where plate='"+lp+"'")
+    checkDetected = cursor.fetchall()
+    if (len(checkDetected) > 0):
+        return checkDetected[0][1]
+    else:
         cursor.execute("SELECT * FROM detect_today where plate='"+lp+"'")
         checkDetectToday = cursor.fetchall()
         if (len(checkDetectToday) > 0):
-            return "Xe da vao"
-        if (len(checkDetectToday) == 0):
-            return "Khong co du lieu"
+            return "XE DA VAO"
+        else:
+            return "KHONG CO DU LIEU"
+
+
+def returnCarNoneDetectInsert(lp, flag):
+    if (flag > 0):
+        cursor.execute(
+            "INSERT INTO `detect_today` (`id`, `status`, `event`, `type`, `plate`, `date`) VALUES (NULL, 'XE DA VAO', 'XE VAO UBND', 'O T0', '"+lp+"', current_timestamp())")
+        connt.commit()
     else:
-
-        return checkDetected[0][1]
-
-
-def returnCarNoneDetectInsert(lp):
-    cursor.execute(
-        "INSERT INTO `detect_today` (`id`, `status`, `event`, `type`, `plate`, `date`) VALUES (NULL, 'Khong co du lieu', 'Xe vao co quan', 'O to', '"+lp+"', current_timestamp())")
-    connt.commit()
+        cursor.execute(
+            "INSERT INTO `detect_today` (`id`, `status`, `event`, `type`, `plate`, `date`) VALUES (NULL, 'KHONG CO DU LIEU', 'XE VAO UBND', 'O T0', '"+lp+"', current_timestamp())")
+        connt.commit()
     # print("Inserted data" + lp)
 
 
 def returnCarDetectedInsert(status, lp):
     cursor.execute(
-        "INSERT INTO `detect_today` (`id`, `status`, `event`, `type`, `plate`, `date`) VALUES (NULL, '"+status+"', 'Xe vao co quan', 'O to', '"+lp+"', current_timestamp())")
+        "INSERT INTO `detect_today` (`id`, `status`, `event`, `type`, `plate`, `date`) VALUES (NULL, '"+status+"', 'XE VAO UBND', 'O TO', '"+lp+"', current_timestamp())")
     connt.commit()
     # print("Inserted data" + lp)
 
