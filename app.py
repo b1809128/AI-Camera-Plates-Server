@@ -45,19 +45,11 @@ yolo_license_plate = torch.hub.load(
 yolo_license_plate.conf = 0.60
 
 
-def check_plate(plate):
-    ub_list_plate = ["65A19777", "65A29999"]
-    for i in ub_list_plate:
-        if (i == plate):
-            return 1
-        else:
-            return 0
-
-
 def gen():
     # cap = cv2.VideoCapture("D:/QuocHuy/Project/AI/Flask-Server-AI-Camera/test_image/test.mp4")
     # cursor = mysql.connection.cursor()
     cap = cv2.VideoCapture(0)
+
     while True:
         ret, frame = cap.read()
 
@@ -83,9 +75,9 @@ def gen():
                         yolo_license_plate, utils_rotate.deskew(crop_img, cc, ct))
                     if lp != "unknown":
                         list_read_plates.add(lp)
+
                         returnCarCheckedForAdd(lp)
-                        # objectCheck = returnObjectCheck(lp)
-                        # print(objectCheck)
+
                         (text_width, text_height) = cv2.getTextSize(
                             lp, cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5, thickness=1)[0]
                         text_offset_x = int(plate[0])
@@ -96,11 +88,11 @@ def gen():
 
                         cv2.rectangle(
                             frame, box_coords[0], box_coords[1], (0, 0, 0), cv2.FILLED)
-                        cv2.putText(frame, "Tinh trang: "+returnVideoStatusCheck(lp), (int(plate[0]), int(
+                        cv2.putText(frame, "Tinh trang: "+str(returnVideoStatusCheck(lp)), (int(plate[0]), int(
                             plate[1]-55)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
                         cv2.putText(frame, "Su kien: XE VAO UBND", (int(plate[0]), int(
                             plate[1]-45)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
-                        cv2.putText(frame, "Loai xe: O to", (int(plate[0]), int(
+                        cv2.putText(frame, "Loai xe: O TO", (int(plate[0]), int(
                             plate[1]-35)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
                         cv2.putText(frame, "Bien so: "+lp, (int(plate[0]), int(
                             plate[1]-25)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
@@ -113,48 +105,69 @@ def gen():
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + open('demo.jpg', 'rb').read() + b'\r\n')
 
+# HAM KIEM TRA DE THEM DU LIEU
+
 
 def returnCarCheckedForAdd(lp):
-    # lp = "65A19777"
+    # KIEM TRA CAC BS DUOC PHEP VAO CO QUAN
     cursor.execute("SELECT * FROM detected where plate='"+lp+"'")
     checkDetected = cursor.fetchall()
 
     if (len(checkDetected) > 0):
+        # NEU BS DUOC PHEP DA LUU THI THEM BS VAO DU LIEU TRONG NGAY
         returnCarDetectedInsert(checkDetected[0][1], lp)
     else:
+        # KIEM TRA CAC BS DA VAO TRONG NGAY
         cursor.execute("SELECT * FROM detect_today where plate='"+lp+"'")
-        checkDetected = cursor.fetchall()
-
-        if ((len(checkDetected) < 0)):
-            returnCarNoneDetectInsert(lp, 0)
-        else:
+        checkDetectToday = cursor.fetchall()
+        # print(len(checkDetected))
+        if ((len(checkDetectToday) >= 1)):
+            # NEU BS TRONG NGAY DA TON TAI THI THEM VAO "XE DA VAO" || "UNKNOW"
             returnCarNoneDetectInsert(lp, 1)
+
+        else:
+            returnCarNoneDetectInsert(lp, 0)
+        returnCarNoneDetectInsert(lp, 0)
+
+# HAM KIEM TRA HIEN THI RA VIDEO
 
 
 def returnVideoStatusCheck(lp):
+    # KIEM TRA CAC BS DUOC PHEP VAO CO QUAN TRA VE TINH TRANG THONG TIN BS
     cursor.execute("SELECT * FROM detected where plate='"+lp+"'")
     checkDetected = cursor.fetchall()
     if (len(checkDetected) > 0):
         return checkDetected[0][1]
     else:
-        cursor.execute("SELECT * FROM detect_today where plate='"+lp+"'")
+        cursor.execute(
+            "SELECT * FROM detect_today where plate='"+lp+"'")
         checkDetectToday = cursor.fetchall()
-        if (len(checkDetectToday) > 0):
+        if (len(checkDetectToday) > 0 and checkDetectToday[0][1] == "XE DA VAO"):
+            # if ():
             return "XE DA VAO"
-        else:
-            return "KHONG CO DU LIEU"
+
+        return "KHONG CO DU LIEU"
 
 
 def returnCarNoneDetectInsert(lp, flag):
-    if (flag > 0):
+    if (flag == 0):
+        cursor.execute("SELECT * FROM detect_today where plate='"+lp+"'")
+        check_plate_empty = cursor.fetchall()
+        if (len(check_plate_empty) == 0):
+            cursor.execute(
+                "INSERT INTO `detect_today` (`id`, `status`, `event`, `type`, `plate`, `date`) VALUES (NULL, 'KHONG CO DU LIEU', 'XE VAO UBND', 'O TO', '"+lp+"', current_timestamp())")
+            connt.commit()
+    if (flag == 1):
+        insertFlag = 0
         cursor.execute(
-            "INSERT INTO `detect_today` (`id`, `status`, `event`, `type`, `plate`, `date`) VALUES (NULL, 'XE DA VAO', 'XE VAO UBND', 'O T0', '"+lp+"', current_timestamp())")
+            "INSERT INTO `detect_today` (`id`, `status`, `event`, `type`, `plate`, `date`) VALUES (NULL, 'XE DA VAO', 'XE VAO UBND', 'O TO', '"+lp+"', current_timestamp())")
         connt.commit()
-    else:
-        cursor.execute(
-            "INSERT INTO `detect_today` (`id`, `status`, `event`, `type`, `plate`, `date`) VALUES (NULL, 'KHONG CO DU LIEU', 'XE VAO UBND', 'O T0', '"+lp+"', current_timestamp())")
-        connt.commit()
-    # print("Inserted data" + lp)
+        insertFlag = 1
+        if (insertFlag == 1):
+            cursor.execute(
+                "UPDATE `detect_today` SET `status` = 'XE DA VAO' WHERE `detect_today`.`plate` = '"+lp+"';")
+            connt.commit()
+    # print({"Inserted data: ": lp, "Flag: ": flag})
 
 
 def returnCarDetectedInsert(status, lp):
@@ -207,25 +220,6 @@ def countRowData():
 
 @app.route('/loadData', methods=['GET', 'POST'])
 def loadData():
-    # data = [{
-    #     "id": 1,
-    #     "plate": "65A19777",
-    #     "created_at": "08:35:20 18/11/2023"
-    # }, {
-    #     "id": 2,
-    #     "plate": "65A25896",
-    #     "created_at": "08:38:20 18/11/2023"
-    # }, {
-    #     "id": 3,
-    #     "plate": "65A19777",
-    #     "created_at": "08:38:20 18/11/2023"
-    # }]
-
-    # newData = []
-    # for i in data:
-    #     if (i["plate"] == "65A19777"):
-    #         # print(i)
-    #         return jsonify(response=i)
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute("SELECT * FROM detect_today ORDER BY id DESC limit 3 ")
     checkDetectToday = cursor.fetchall()
@@ -242,8 +236,6 @@ def loadData():
 
 if __name__ == '__main__':
     app.run(debug=True)
-    # print(plate_array)
-    # socketio.run(app)
 
 # Requirements.txt
 # pipreqs --encoding=utf8 D:\QuocHuy\Project\AI\Flask-Server-AI-Camera
