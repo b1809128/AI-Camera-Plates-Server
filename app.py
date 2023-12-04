@@ -36,6 +36,7 @@ now = datetime.now()
 dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
 
 plate_array = []
+flag_stop_video = False
 
 # load model
 yolo_LP_detect = torch.hub.load(
@@ -76,7 +77,7 @@ def gen():
                     if lp != "unknown":
                         list_read_plates.add(lp)
 
-                        returnCarCheckedForAdd(lp)
+                        checkToAddDatabase(lp)
 
                         (text_width, text_height) = cv2.getTextSize(
                             lp, cv2.FONT_HERSHEY_SIMPLEX, fontScale=0.5, thickness=1)[0]
@@ -86,36 +87,52 @@ def gen():
                         box_coords = ((text_offset_x, text_offset_y), (text_offset_x +
                                                                        text_width + 70, text_offset_y-50 - text_height - 2))
 
-                        cv2.rectangle(
-                            frame, box_coords[0], box_coords[1], (0, 0, 0), cv2.FILLED)
-                        cv2.putText(frame, "Tinh trang: "+str(returnVideoStatusCheck(lp)), (int(plate[0]), int(
-                            plate[1]-55)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
-                        cv2.putText(frame, "Su kien: XE VAO UBND", (int(plate[0]), int(
-                            plate[1]-45)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
-                        cv2.putText(frame, "Loai xe: O TO", (int(plate[0]), int(
-                            plate[1]-35)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
-                        cv2.putText(frame, "Bien so: "+lp, (int(plate[0]), int(
-                            plate[1]-25)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
-                        cv2.putText(frame, "Thoi diem: "+dt_string, (int(plate[0]), int(
-                            plate[1]-15)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
+                        if returnValueStatusChecked(lp) == 1:
+                            cv2.rectangle(
+                                frame, box_coords[0], box_coords[1], (0, 0, 0), cv2.FILLED)
+                            cv2.putText(frame, "Tinh trang: "+str(displayStatusPlate(lp)), (int(plate[0]), int(
+                                plate[1]-55)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
+                            cv2.putText(frame, "Su kien: XE VAO UBND", (int(plate[0]), int(
+                                plate[1]-45)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
+                            cv2.putText(frame, "Loai xe: O TO", (int(plate[0]), int(
+                                plate[1]-35)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
+                            cv2.putText(frame, "Bien so: "+lp, (int(plate[0]), int(
+                                plate[1]-25)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
+                            cv2.putText(frame, "Thoi diem: "+dt_string, (int(plate[0]), int(
+                                plate[1]-15)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
+                        else:
+                            cv2.rectangle(
+                                frame, box_coords[0], box_coords[1], (0, 0, 255), cv2.FILLED)
+                            cv2.putText(frame, "Tinh trang: "+str(displayStatusPlate(lp)), (int(plate[0]), int(
+                                plate[1]-55)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
+                            cv2.putText(frame, "Su kien: XE VAO UBND", (int(plate[0]), int(
+                                plate[1]-45)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
+                            cv2.putText(frame, "Loai xe: O TO", (int(plate[0]), int(
+                                plate[1]-35)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
+                            cv2.putText(frame, "Bien so: "+lp, (int(plate[0]), int(
+                                plate[1]-25)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
+                            cv2.putText(frame, "Thoi diem: "+dt_string, (int(plate[0]), int(
+                                plate[1]-15)), cv2.FONT_HERSHEY_SIMPLEX, 0.3, (255, 255, 255), 1)
+
         if not ret:
             print("Error: failed to capture image")
             break
         cv2.imwrite('demo.jpg', frame)
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + open('demo.jpg', 'rb').read() + b'\r\n')
-
+        if flag_stop_video:
+            break
 # HAM KIEM TRA DE THEM DU LIEU
 
 
-def returnCarCheckedForAdd(lp):
+def checkToAddDatabase(lp):
     # KIEM TRA CAC BS DUOC PHEP VAO CO QUAN
     cursor.execute("SELECT * FROM detected where plate='"+lp+"'")
     checkDetected = cursor.fetchall()
 
     if (len(checkDetected) > 0):
         # NEU BS DUOC PHEP DA LUU THI THEM BS VAO DU LIEU TRONG NGAY
-        returnCarDetectedInsert(checkDetected[0][1], lp)
+        insertCarDetected(checkDetected[0][1], lp)
     else:
         # KIEM TRA CAC BS DA VAO TRONG NGAY
         cursor.execute("SELECT * FROM detect_today where plate='"+lp+"'")
@@ -123,16 +140,16 @@ def returnCarCheckedForAdd(lp):
         # print(len(checkDetected))
         if ((len(checkDetectToday) >= 1)):
             # NEU BS TRONG NGAY DA TON TAI THI THEM VAO "XE DA VAO" || "UNKNOW"
-            returnCarNoneDetectInsert(lp, 1)
-
+            # insertCarNotDetected(lp, 1)
+            inserted = 1
         else:
-            returnCarNoneDetectInsert(lp, 0)
-        returnCarNoneDetectInsert(lp, 0)
+            insertCarNotDetected(lp, 0)
+        insertCarNotDetected(lp, 0)
 
 # HAM KIEM TRA HIEN THI RA VIDEO
 
 
-def returnVideoStatusCheck(lp):
+def displayStatusPlate(lp):
     # KIEM TRA CAC BS DUOC PHEP VAO CO QUAN TRA VE TINH TRANG THONG TIN BS
     cursor.execute("SELECT * FROM detected where plate='"+lp+"'")
     checkDetected = cursor.fetchall()
@@ -149,7 +166,17 @@ def returnVideoStatusCheck(lp):
         return "KHONG CO DU LIEU"
 
 
-def returnCarNoneDetectInsert(lp, flag):
+def returnValueStatusChecked(lp):
+    # KIEM TRA CAC BS DUOC PHEP VAO CO QUAN TRA VE TINH TRANG THONG TIN BS
+    cursor.execute("SELECT * FROM detected where plate='"+lp+"'")
+    checkDetected = cursor.fetchall()
+    if (len(checkDetected) > 0):
+        return 1
+    else:
+        return 0
+
+
+def insertCarNotDetected(lp, flag):
     if (flag == 0):
         cursor.execute("SELECT * FROM detect_today where plate='"+lp+"'")
         check_plate_empty = cursor.fetchall()
@@ -170,7 +197,7 @@ def returnCarNoneDetectInsert(lp, flag):
     # print({"Inserted data: ": lp, "Flag: ": flag})
 
 
-def returnCarDetectedInsert(status, lp):
+def insertCarDetected(status, lp):
     cursor.execute(
         "INSERT INTO `detect_today` (`id`, `status`, `event`, `type`, `plate`, `date`) VALUES (NULL, '"+status+"', 'XE VAO UBND', 'O TO', '"+lp+"', current_timestamp())")
     connt.commit()
