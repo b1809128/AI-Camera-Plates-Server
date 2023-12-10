@@ -47,7 +47,7 @@ yolo_license_plate.conf = 0.60
 
 
 def gen():
-    # cap = cv2.VideoCapture("D:/QuocHuy/Project/AI/Flask-Server-AI-Camera/test_image/test.mp4")
+    # cap = cv2.VideoCapture("D:/QuocHuy/Project/AI/Flask-Server-AI-Camera/demo.mp4")
     # cursor = mysql.connection.cursor()
     cap = cv2.VideoCapture(0)
 
