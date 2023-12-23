@@ -1,12 +1,13 @@
 from flask import Flask, render_template, Response, jsonify, request
 from datetime import datetime
 # from PIL import Image
+from PIL import ImageGrab
 import cv2
 import torch
 # import math
 import function.utils_rotate as utils_rotate
 from IPython.display import display
-# import os
+import os
 # import time
 # import argparse
 import function.helper as helper
@@ -47,9 +48,10 @@ yolo_license_plate.conf = 0.60
 
 
 def gen():
-    # cap = cv2.VideoCapture("D:/QuocHuy/Project/AI/Flask-Server-AI-Camera/demo.mp4")
+    cap = cv2.VideoCapture(
+        "D:/QuocHuy/Project/AI/Flask-Server-AI-Camera/demo.mp4")
     # cursor = mysql.connection.cursor()
-    cap = cv2.VideoCapture(0)
+    # cap = cv2.VideoCapture(0)
 
     while True:
         ret, frame = cap.read()
@@ -214,6 +216,24 @@ def video_feed():
     return Response(gen(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
+# @app.route('/capture', methods=['POST'])
+# def capture():
+#     cap = cv2.VideoCapture("D:/QuocHuy/Project/AI/Flask-Server-AI-Camera/demo.mp4")
+#     success, frame = cap.read()
+#     if success:
+#         cv2.imwrite('captured_image.jpg', frame)
+#     return render_template('index.html')
+
+
+@app.route('/capture')
+def capture_screen():
+    # Chụp màn hình và lưu vào tệp captured_screen.png
+    screenshot = ImageGrab.grab()
+    screenshot_path = os.path.join(os.getcwd(), 'captured_screen.jpg')
+    screenshot.save(screenshot_path)
+    # print('Screenshot captured: {screenshot_path}')
+    return render_template('index.html')
+
 
 @app.route('/returnjson', methods=['GET'])
 def ReturnJSON():
@@ -248,7 +268,7 @@ def countRowData():
 @app.route('/loadData', methods=['GET', 'POST'])
 def loadData():
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute("SELECT * FROM detect_today ORDER BY id DESC limit 3 ")
+    cursor.execute("SELECT * FROM detect_today ORDER BY id DESC limit 2 ")
     checkDetectToday = cursor.fetchall()
     arrayInfo = []
     arrayObjects = {}
