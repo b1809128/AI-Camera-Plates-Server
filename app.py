@@ -48,10 +48,10 @@ yolo_license_plate.conf = 0.60
 
 
 def gen():
-    cap = cv2.VideoCapture(
-        "D:/QuocHuy/Project/AI/Flask-Server-AI-Camera/demo.mp4")
+    # cap = cv2.VideoCapture(
+    #     "D:/QuocHuy/Project/AI/Flask-Server-AI-Camera/demo.mp4")
     # cursor = mysql.connection.cursor()
-    # cap = cv2.VideoCapture(0)
+    cap = cv2.VideoCapture(0)
 
     while True:
         ret, frame = cap.read()
@@ -286,3 +286,4 @@ if __name__ == '__main__':
 
 # Requirements.txt
 # pipreqs --encoding=utf8 D:\QuocHuy\Project\AI\Flask-Server-AI-Camera
+#run localhost - python app.py
